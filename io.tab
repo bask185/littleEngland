@@ -1,0 +1,23 @@
+8	detectorLeft	INPUT
+9	detectorRight	INPUT
+4	trackPower	OUTPUT
+2	directionPin1	OUTPUT
+3	directionPin2	OUTPUT
+13	weistraPin	OUTPUT
+A2	occupanceDetector	INPUT
+A3	currentSensePin	INPUT
+A7	throttle	INPUT
+A6	trainSelector	INPUT
+5	muxPin1	OUTPUT
+6	muxPin2	OUTPUT
+7	muxPin3	OUTPUT
+13	ledPin	OUTPUT
+
+MCP1
+0	frog1	OUTPUT
+1	frog2	OUTPUT
+2	frog3	OUTPUT
+3	frog4	OUTPUT
+4	frog5	OUTPUT
+5	frog6	OUTPUT
+6	frog7	OUTPUT
