@@ -22,6 +22,8 @@ typedef struct Section {
 	uint8_t rightSensor   ; 
 	uint8_t leftTurnout   ;
 	uint8_t rightTurnout  ;
+	uint8_t leftTurnoutBlind   ;
+	uint8_t rightTurnoutBlind  ;
 	uint8_t leftStraight  ;
 	uint8_t leftCurved    ;
 	uint8_t rightStraight ;
