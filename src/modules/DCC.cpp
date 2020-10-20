@@ -42,6 +42,10 @@ uint8_t	speed
 uint8_t	headlight
 uint8_t	functions
 uint8_t	decoderType
+example.
+Train currentTrain = getTrain( 40 );		// fetch information of train with address 40
+if( currentTrain.speed < 28 ) doStuff() ;
+
 
 Also important note: 
 Setting a function is done by sending one whole '1' in a byte. bit 0 corresponds with F1 bit 7 corresponds with F8

@@ -38,14 +38,16 @@ sensors sensor[6];
 Weistra regelaar( trackPower );
 
 #define setMux(x,j,k,l) case x:digitalWrite( muxPin1,  j ); digitalWrite( muxPin2,  k ); digitalWrite( muxPin3,  l ); break;
+/* selects a channel of the multiplexer */
 void selectSensor(uint8_t nSensor) {
 	switch( nSensor ) {
 		setMux(0,  LOW,  LOW,  LOW);
-		setMux(0,  LOW,  LOW, HIGH);
-		setMux(0,  LOW, HIGH,  LOW);
-		setMux(0,  LOW, HIGH, HIGH);
-		setMux(0, HIGH,  LOW,  LOW);
-		setMux(0, HIGH,  LOW, HIGH);
+		setMux(1,  LOW,  LOW, HIGH);
+		setMux(2,  LOW, HIGH,  LOW);
+		setMux(3,  LOW, HIGH, HIGH);
+		setMux(4, HIGH,  LOW,  LOW);
+		setMux(5, HIGH,  LOW, HIGH);
+		setMux(6, HIGH, HIGH,  LOW);
 	}
 }
 
@@ -54,14 +56,20 @@ void selectSensor(uint8_t nSensor) {
 #define accelerating 1
 #define decelerating 2
 
+/********************************
+ * reads in the potentiometer and the 2 turnout buttons of the handcontroller
+ * The pot value is recalculated to a speed  setpoint
+ * A seperate acceleration speed and deceleration speed is than used to accel and break
+ * The speed is than send to the train being analog or digital
+********************************/
 void handController() {
 	static uint8_t speedState = accelerating, previousSpeed;
 
 	if( !controllerT ) {
-		if( speedState == accelerating ) controllerT = accelerationInterval;
-		if( speedState == decelerating ) controllerT = decelerationInterval;
+		if( speedState == accelerating ) controllerT = accelerationInterval ;
+		if( speedState == decelerating ) controllerT = decelerationInterval ;
 
-		static int8_t speed = 0, speedSetPoint = 0, speedPrev = 50;
+		static int8_t speed = 0, speedSetPoint = 0, speedPrev = 50 ;
 		uint8_t difference;
 
 		static uint16_t previousSample;
@@ -69,24 +77,18 @@ void handController() {
 
 		if ( sample >= previousSample ) difference = sample - previousSample;
 		if ( sample <  previousSample ) difference = previousSample - sample;
-		
 
 		if( difference > 10 ) { 
 			previousSample = sample;
-
-			////Serial.println( sample );
-
 
 				 if( sample > 1000 ) { nextTurnout = STRAIGHT ; /*Serial.println("  up button pressed");*/ }  
 			else if( sample <   10 ) { nextTurnout = CURVED   ; /*Serial.println("down button pressed");*/ } 
 			else {
 				nextTurnout = UNDETERMENED;
 				////Serial.print( "sample speed " );  //Serial.println(sample);
-				
 				speedSetPoint = map( sample, lowerVal, upperVal, -100, 100 ); 
-				speedSetPoint /= 10;
+				speedSetPoint /= 10; // creates 10 speedsteps
 				speedSetPoint *= 10;
-
 			}
 		}
 
@@ -94,14 +96,12 @@ void handController() {
 			
 		}
 		else {					// control speed
-
 			if( speed < speedSetPoint ) speed ++;
 			if( speed > speedSetPoint ) speed --;	
 
 			if( abs(speed) > previousSpeed ) {
 				speedState = accelerating;
-			}	
-			else {
+			} else {
 				speedState = decelerating;
 			}
 			previousSpeed = abs( speed ) ;
@@ -123,20 +123,17 @@ void handController() {
 				else {
 					uint8_t DCCspeed = map( speed, -100, 100, 0, 56 ); // remap speed value for DCC signals
 					
-					// selectedAddres = addresses[ mode - 1 ]; NEW DCC MODULE IS IMPORTANT, CONTROL FUNCTION MUST BE ALTERED
-					// train[ selectedAddres ].speed = DCCspeed;
-
-					// currentAddres = selectedAddres; // send new instruction 60x
-					// newInstructionFlag = true;
-
-					//Serial.print("DCC speed = ");//Serial.println(DCCspeed);
-					//Serial.print("currentAddres = ");//Serial.println(currentAddres);
+					setSpeed( selectedAddres, DCCspeed );
 				}
 			}
 		}
 	}
 }
-
+/********************************
+ * measures the current going to the tracks and keeps track of time
+ * if a continous overload of 50ms has occured, the trackpower will be shut off
+ * after 5 seconds a new attempt will be made to apply track power
+********************************/
 void shortCircuit() {
 	static byte msCounter = 0;
 
@@ -169,6 +166,9 @@ void shortCircuit() {
 	}
 }
 
+/************************************************
+ * Reads in all LDR values and filters the output
+************************************************/
 void readLDR() {
 	static byte i = 0;
 	uint16_t sample;
@@ -199,6 +199,9 @@ void readLDR() {
 }
 
 #define nTrains 4
+/************************************************
+ * reads in the train select button and pick the correct train to controll
+*************************************************/
 void selectTrain() {
 	uint16_t sample;
 	uint8_t difference;
@@ -224,22 +227,12 @@ void selectTrain() {
 
 			if( newTrain != analog ) {
 				selectedAddres = addresses[ newTrain - 1 ];
-	 
-				train[ selectedAddres ].speed = 28; 
-				currentAddres = selectedAddres;
-				packetType = speedPacket;
-				newInstructionFlag = true;
-
-				
-
-				//selectedAddres = newTrain; // for DCC operation we select a new address
-				//Serial.println(" DCC MODE ENABLED ");
-				//Serial.print("address "); //Serial.print( currentAddres ); //Serial.println(" selected");
+				setSpeed( selectedAddres, 28 ) ;
 			}
 
 			else {
-				// bitClear(TIMSK1,OCIE1B);
-				//Serial.println(" PWM MODE ENABLED ");
+				bitClear(TIMSK1,OCIE1B);	// turn of ISR when analog mode is enabled
+				Serial.println(" PWM MODE ENABLED ");
 			}
 
 			
@@ -254,22 +247,24 @@ void selectTrain() {
 		}
 	}
 }
-
+/*******************************************
+ * handles the Weistra controll method or the DCC method to controll all trains
+*******************************************/
 void trackSignals(){
-	//digitalWrite( trackPower, HIGH ); // DELETE ME
-	//if( digitalRead( trackPower ) ) { // if track power is not on, there is really no need to handle the track signals
+	if( digitalRead( trackPower ) ) { // if track power is not on, there is really no need to handle the track signals
 
 		if( mode == analog ) {
 			regelaar.update(); 	// analog mode
 		} 
 		else {
-			digitalWrite( trackPower, HIGH );
+			DCCsignals( ); 		// digital mode (mode termines if this function should run)
 		}
-		DCCsignals( mode ); 		// digital mode (mode termines if this function should run)
-
-	//}
+	}
 }
-
+/***************
+ * flashed led13 as a sign of live.
+ * blinks 1-4 times after a new train is picked for visual conformation
+*************/
 void flash13() {
 	static uint8_t ticks = 0;
 
@@ -283,11 +278,10 @@ void flash13() {
 				PORTB &= ~ ( 1 << 5 );
 				ticks = 0;
 			}
-
 		}
 	}
 }
-	
+
 
 extern void processRoundRobinTasks(void) {
 	static unsigned char taskCounter = INIT_TASK - 1;
@@ -295,22 +289,23 @@ extern void processRoundRobinTasks(void) {
 	// HIGH PRIORITY TASKS
 	trackSignals();
 
-	taskCounter++;
-	switch(taskCounter) {
+	switch(++taskCounter) {
 	// INITIALIZE TASKS (runs once uppon booting)
 		case INIT_TASK:
-		regelaar.begin();
-		initDCC();
+		initTurnouts();		// handle all servo motors and frog juicer
+		regelaar.begin();	// weistra pwm control
+		initDCC();			// DCC signal control
 		PORTD = ( PORTD & 0b1011 ) | 0b1000; // differentiate both direction pins
 		break;
 
 	// LOW PRIORITY TASKS
 		default: taskCounter = 0;
 		case 0: handController();	break;
-		case 1: /*shortCircuit();*/ break;
-		case 2: layoutManager(); 	break;
-		case 3: readLDR(); 			break;
-		case 4: selectTrain(); 		break;
+		case 1: shortCircuit();		break;
+		case 2: layoutManager();	break;
+		case 3: readLDR();			break;
+		case 4: selectTrain();		break;
 		case 5: flash13();			break;
+		case 6: controlTurnouts();	break;
 	}
 }

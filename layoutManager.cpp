@@ -53,6 +53,9 @@ uint8_t readSections(Section *currentSection, uint8_t direction) {
 }
 
 #define nTrains 3
+/*************************************
+ * Keeps track of a train's wareabout and controlls all turnouts correctly.
+*************************************/
 void layoutManager(void)
  {
 	for( int i = 0 ; i < nTrains ; i++ ) {

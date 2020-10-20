@@ -2,6 +2,10 @@
 
 //#define nTrains 3
 
+const int pos0 = 0b00000000 ; // not connected to a turnout
+const int pos1 = 0b01000000 ; // connected to the entry side of a turnout
+const int pos2 = 0b10000000 ; // connected to the straight side
+const int pos3 = 0b11000000 ; // connected to the curved side
 
 #define RIGHT 1 
 #define LEFT 2 
@@ -14,14 +18,14 @@
 #define turnoutAmount 16
 
 typedef struct Section {
-	uint8_t leftSensor    :  4; // 16 max
-	uint8_t rightSensor   :  4; // 16 max 
-	uint8_t leftTurnout   :  4; // 16 max
-	uint8_t rightTurnout  :  4; // 16 max
-	uint8_t leftStraight  :  4; // 16 max
-	uint8_t leftCurved    :  4; // 16 max
-	uint8_t rightStraight :  4; // 16 max
-	uint8_t rightCurved   :  4; // 16 max
+	uint8_t leftSensor    ;
+	uint8_t rightSensor   ; 
+	uint8_t leftTurnout   ;
+	uint8_t rightTurnout  ;
+	uint8_t leftStraight  ;
+	uint8_t leftCurved    ;
+	uint8_t rightStraight ;
+	uint8_t rightCurved   ;
 } Section;
 extern Section section[ sectionAmount ];
 
