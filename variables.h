@@ -1,42 +1,41 @@
 #include <Arduino.h>
 
-//#define nTrains 3
+const int nTrains = 1 ;
 
-const int pos0 = 0b00000000 ; // not connected to a turnout
-const int pos1 = 0b01000000 ; // connected to the entry side of a turnout
-const int pos2 = 0b10000000 ; // connected to the straight side
-const int pos3 = 0b11000000 ; // connected to the curved side
+const int RIGHT = 1 ; 
+const int LEFT  = 2 ; 
+const int UP = 1 ;
+const int DOWN = 1 ;
+const int NA = 255 ; 
 
-#define RIGHT 1 
-#define LEFT 2 
-
-#define STRAIGHT 1
-#define CURVED  2
-#define NA 0
-
-#define sectionAmount 14
-#define turnoutAmount 16
+const int MAXIMUM_CURRENT = 200 ;
+const int UNDETERMENED = 0 ;
+const int INIT_TASK = 255 ;
+const int upperVal = 1013 ;
+const int lowerVal = 11 ;
+const int sectionAmount = 14 ;
+const int turnoutAmount = 16 ;
 
 typedef struct Section {
-	uint8_t leftSensor    ;
-	uint8_t rightSensor   ; 
-	uint8_t leftTurnout   ;
-	uint8_t rightTurnout  ;
-	uint8_t leftTurnoutBlind   ;
-	uint8_t rightTurnoutBlind  ;
-	uint8_t leftStraight  ;
-	uint8_t leftCurved    ;
-	uint8_t rightStraight ;
-	uint8_t rightCurved   ;
+	uint8_t leftSensor  ;
+	uint8_t rightSensor ; 
+	uint8_t leftTurnout ;
+	uint8_t rightTurnout ;
+	uint8_t leftTurnoutBlind ;
+	uint8_t rightTurnoutBlind ;
+	uint8_t leftUp  ;
+	uint8_t leftDown  ;
+	uint8_t rightUp ;
+	uint8_t rightDown ;
 } Section;
 extern Section section[ sectionAmount ];
 
 typedef struct Turnout {
-	uint8_t ID : 1;
-	uint8_t state : 1;
-	uint8_t curvedPostition;
-	uint8_t straightPosition;
-	uint8_t frog;
+	uint8_t ID : 1 ;
+	uint8_t state : 1 ;
+	uint8_t up ;
+	uint8_t down ;
+	uint8_t frog ;
 } Turnout;
 
 // typedef struct Train {
@@ -50,3 +49,5 @@ typedef struct Turnout {
 extern Turnout turnout[ turnoutAmount ];
 
 extern unsigned int previousSample[6];
+extern uint8_t currentSection ;
+extern uint8_t direction ;

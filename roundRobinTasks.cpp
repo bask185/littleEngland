@@ -8,27 +8,10 @@
 #include "src/modules/DCC.h"
 
 
-// HIGH PRIORITY ROUND ROBIN TASKS
-	//readSerialBus();
-	//readLDR();
-
-#define MAXIMUM_CURRENT 200
-
-#define UNDETERMENED 0
-#define STRAIGHT 1
-#define CURVED 2
-
-#define INIT_TASK 255
-
-
-#define upperVal 1013
-#define lowerVal 11
-
 struct sensors {
 	uint16_t occupied : 1;
 	uint16_t occupanceValue : 10;
 };
-uint8_t nextTurnout;
 
 enum modes { analog, DCC1, DCC2, DCC3 };
 uint8_t mode, newTrainSelected = 0;;
@@ -64,6 +47,10 @@ void selectSensor(uint8_t nSensor) {
 ********************************/
 void handController() {
 	static uint8_t speedState = accelerating, previousSpeed;
+	struct {
+		uint8_t up : 1 ;
+		uint8_t down : 1 ;
+	 } turnoutButton ;
 
 	if( !controllerT ) {
 		if( speedState == accelerating ) controllerT = accelerationInterval ;
@@ -81,23 +68,28 @@ void handController() {
 		if( difference > 10 ) { 
 			previousSample = sample;
 
-				 if( sample > 1000 ) { nextTurnout = STRAIGHT ; /*Serial.println("  up button pressed");*/ }  
-			else if( sample <   10 ) { nextTurnout = CURVED   ; /*Serial.println("down button pressed");*/ } 
+				 if( sample > 1000 ) { turnoutButton.up = 1 ; /*Serial.println("  up button pressed");*/ }  
+			else if( sample <   10 ) { turnoutButton.down = 1 ;   ; /*Serial.println("down button pressed");*/ } 
 			else {
 				nextTurnout = UNDETERMENED;
 				////Serial.print( "sample speed " );  //Serial.println(sample);
 				speedSetPoint = map( sample, lowerVal, upperVal, -100, 100 ); 
-				speedSetPoint /= 10; // creates 10 speedsteps
-				speedSetPoint *= 10;
+				speedSetPoint /= 4; // turns 100 speed steps into 25 speed steps
+				speedSetPoint *= 4;
 			}
 		}
 
-		if( nextTurnout ) {		// if turnout buttons are pressed...
-			
+		if( turnoutButton.up ) {		// if turnout up is pressed
+			if( direction == RIGHT ) section[ currentSection ].rightTurnout = UP ;
+			if( direction == LEFT  ) section[ currentSection ].leftTurnout  = UP ;
+		} 
+		else if( turnoutButton.down ) {	// if turnout down is pressed
+			if( direction == RIGHT ) section[ currentSection ].rightTurnout = DOWN ;
+			if( direction == LEFT  ) section[ currentSection ].leftTurnout  = DOWN ;
 		}
-		else {					// control speed
-			if( speed < speedSetPoint ) speed ++;
-			if( speed > speedSetPoint ) speed --;	
+		else {							// potentiometer has changed
+			if( speedSetPoint > speed ) speed ++;
+			if( speedSetPoint < speed ) speed --;	
 
 			if( abs(speed) > previousSpeed ) {
 				speedState = accelerating;
