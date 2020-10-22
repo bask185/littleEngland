@@ -163,35 +163,29 @@ void shortCircuit() {
 }
 
 /************************************************
- * Reads in all LDR values and filters the output
+ * Reads in all LDR values and filters the output N.B. this function should be moved to ldr.cpp and it propable needs alot of adjustments but ldr's need to be tested first
 ************************************************/
-void readLDR() {
-	static byte i = 0;
-	uint16_t sample;
-	uint16_t difference;
+uint8_t readLDR( uint8_t index ) {
+	int16_t sample;
+	int16_t difference;
 
 	if ( !updateT ) { 
-		updateT = 10; // !every 3 ms
+		updateT = 10; // !every 10 ms
 
-		i++;
-		if( i == 6) i = 0;
-
-		selectSensor(i);
+		selectSensor( index );
 
 		sample = analogRead( occupanceDetector );
 		
-		if ( sample >= previousSample[i] ) difference = sample - previousSample[i];
-		if ( sample <  previousSample[i] ) difference = previousSample[i] - sample;
+		difference = sample - previousSample[ index ] ;
+		if( difference < 0 ) difference = - difference ;
 
-		previousSample[i] = sample;
+		previousSample[ index ] = sample;
 
-		if( sensor[i].occupied == false && difference > 100 ) {
-
-			sensor[i].occupied = true;
-			sensor[i].occupanceValue = sample;
-			 // //Serial.print("sensor ");//Serial.print(i); //Serial.print(" is true with value: "); //Serial.println(sample);
+		if( difference > 100 ) {
+			return 1 ;
 		}		
 	}
+	return  0 ;
 }
 
 #define nTrains 4
