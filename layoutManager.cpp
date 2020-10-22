@@ -62,12 +62,11 @@ void layoutManager(void) {
 		uint8_t currentSection = train[i].section;
 
 		uint8_t newSection = readSections( &section[ currentSection ] , train[i].direction ); // poll sensors of every known occupied sector
-		currentSection = newSection ;
 
 		if( newSection ) {
 			train[i].section = newSection ; // if a sensor is true, the train may transition through sectors.
-			uint8_t leftTurnout  = section[ currentSection ].leftTurnout ;
-			uint8_t rightTurnout = section[ currentSection ].rightTurnout ;
+			uint8_t leftTurnout  = section[ newSection ].leftTurnout ;
+			uint8_t rightTurnout = section[ newSection ].rightTurnout ;
 			
 			if( leftTurnout  & pos2 )  setTurnout( leftTurnout  & 0x7F, STRAIGHT );
 			if( leftTurnout  & pos3 )  setTurnout( leftTurnout  & 0x7F,   CURVED );
