@@ -61,6 +61,7 @@ void layoutManager(void) {
 			blindTurnout = section.rightTurnoutBlind & 0x7F ;
 			state 		 = section.rightTurnoutBlind & 0x80 ;
 			if( blindTurnout != NA ) setTurnout( blindTurnout, state ) ;
+			//section[ currentSection ].rightTurnout = DOWN ;
 		}
 	}
 }

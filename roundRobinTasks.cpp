@@ -78,14 +78,18 @@ void handController() {
 				speedSetPoint *= 4;
 			}
 		}
-
+		
+		uint8_t rightSwitch = section[ currentSection ].rightTurnout ;
+		uint8_t  leftSwitch = section[ currentSection ].leftTurnout ;
+		
 		if( turnoutButton.up ) {		// if turnout up is pressed
-			if( direction == RIGHT ) section[ currentSection ].rightTurnout = UP ;
-			if( direction == LEFT  ) section[ currentSection ].leftTurnout  = UP ;
+			
+			if( direction == RIGHT ) setTurnout( rightSwitch, UP ) ;
+			if( direction ==  LEFT ) setTurnout(  leftSwitch, UP ) ;
 		} 
 		else if( turnoutButton.down ) {	// if turnout down is pressed
-			if( direction == RIGHT ) section[ currentSection ].rightTurnout = DOWN ;
-			if( direction == LEFT  ) section[ currentSection ].leftTurnout  = DOWN ;
+			if( direction == RIGHT ) setTurnout( rightSwitch, DOWN ) ;
+			if( direction ==  LEFT ) setTurnout(  leftSwitch, DOWN ) ;
 		}
 		else {							// potentiometer has changed
 			if( speedSetPoint > speed ) speed ++;
