@@ -34,7 +34,8 @@ Section section[ sectionAmount ] = {	// this table is the layout
 	(  5, NA,     4, NA,   6|C, NA,    10, 10,   13, NA ), // 12
 } ;
 
-
+uint8_t currentSection ;
+uint8_t direction ;
 
 // 	uint8_t ID : 1;
 // 	uint8_t state : 1;
