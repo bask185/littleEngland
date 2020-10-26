@@ -4,6 +4,7 @@
 #include "src/basics/timers.h"
 #include "layoutManager.h"
 #include "variables.h"
+#include "ldr.h"
 #include "src/modules/weistra.h"
 #include "src/modules/DCC.h"
 
@@ -17,6 +18,9 @@ enum modes { analog, DCC1, DCC2, DCC3 };
 uint8_t mode, newTrainSelected = 0;;
 
 sensors sensor[6];
+uint8_t selectedAddres ;
+
+const int addresses = { 3, 4, 5 } ;
 
 Weistra regelaar( trackPower );
 
@@ -162,31 +166,6 @@ void shortCircuit() {
 	}
 }
 
-/************************************************
- * Reads in all LDR values and filters the output N.B. this function should be moved to ldr.cpp and it propable needs alot of adjustments but ldr's need to be tested first
-************************************************/
-uint8_t readLDR( uint8_t index ) {
-	int16_t sample;
-	int16_t difference;
-
-	if ( !updateT ) { 
-		updateT = 10; // !every 10 ms
-
-		selectSensor( index );
-
-		sample = analogRead( occupanceDetector );
-		
-		difference = sample - previousSample[ index ] ;
-		if( difference < 0 ) difference = - difference ;
-
-		previousSample[ index ] = sample;
-
-		if( difference > 100 ) {
-			return 1 ;
-		}		
-	}
-	return  0 ;
-}
 
 #define nTrains 4
 /************************************************
@@ -282,7 +261,7 @@ extern void processRoundRobinTasks(void) {
 	switch(++taskCounter) {
 	// INITIALIZE TASKS (runs once uppon booting)
 		case INIT_TASK:
-		initTurnouts();		// handle all servo motors and frog juicer
+		// initTurnouts();		// handle all servo motors and frog juicer
 		regelaar.begin();	// weistra pwm control
 		initDCC();			// DCC signal control
 		PORTD = ( PORTD & 0b1011 ) | 0b1000; // differentiate both direction pins
@@ -293,9 +272,9 @@ extern void processRoundRobinTasks(void) {
 		case 0: handController();	break;
 		case 1: shortCircuit();		break;
 		case 2: layoutManager();	break;
-		case 3: readLDR();			break;
+		case 3: readLDR(1);			break;
 		case 4: selectTrain();		break;
 		case 5: flash13();			break;
-		case 6: controlTurnouts();	break;
+		case 6: /*controlTurnouts();*/	break;
 	}
 }

@@ -69,7 +69,7 @@ controlling other unintended functions.
 #include "DCC.h"
 #include <EEPROM.h>
 
-#include "src/basics/io.h" 
+#include "../basics/io.h" 
 
 // CONSTANTS
 

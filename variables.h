@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 const int nTrains = 1 ;
+const int nSensors = 6 ;
 
 const int RIGHT = 1 ; 
 const int LEFT  = 2 ; 
@@ -29,6 +30,11 @@ typedef struct Section {
 	uint8_t rightDown ;
 } Section;
 extern Section section[ sectionAmount ];
+
+typedef struct LDRs {
+	uint8_t state ;
+} LDR;
+extern LDR ldr[ nSensors ] ; ;
 
 typedef struct Turnout {
 	uint8_t ID : 1 ;

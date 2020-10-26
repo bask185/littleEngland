@@ -1,5 +1,7 @@
 #include "variables.h"
 
+LDR ldr[ nSensors ] ;
+
 const int C = 0b10000000 ;
 const int S = 0b00000000 ;
 /*
