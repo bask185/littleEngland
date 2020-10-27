@@ -7,7 +7,7 @@
 #include "ldr.h"
 #include "src/modules/weistra.h"
 #include "src/modules/DCC.h"
-
+#include "turnouts.h"
 
 struct sensors {
 	uint16_t occupied : 1;

@@ -5,6 +5,7 @@
 #include "src/basics/io.h"
 #include "variables.h"
 #include "src/modules/DCC.h"
+#include "turnouts.h"
 
 
 uint8_t readSections(Section *currentSection, uint8_t direction) {
