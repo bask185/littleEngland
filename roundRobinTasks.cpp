@@ -20,7 +20,7 @@ uint8_t mode, newTrainSelected = 0;;
 sensors sensor[6];
 uint8_t selectedAddres ;
 
-const int addresses = { 3, 4, 5 } ;
+const int addresses[] = { 3, 4, 5 } ;
 
 Weistra regelaar( trackPower );
 
@@ -75,7 +75,7 @@ void handController() {
 				 if( sample > 1000 ) { turnoutButton.up = 1 ; /*Serial.println("  up button pressed");*/ }  
 			else if( sample <   10 ) { turnoutButton.down = 1 ;   ; /*Serial.println("down button pressed");*/ } 
 			else {
-				nextTurnout = UNDETERMENED;
+				 // nextTurnout = UNDETERMENED;
 				////Serial.print( "sample speed " );  //Serial.println(sample);
 				speedSetPoint = map( sample, lowerVal, upperVal, -100, 100 ); 
 				speedSetPoint /= 4; // turns 100 speed steps into 25 speed steps
@@ -167,7 +167,7 @@ void shortCircuit() {
 }
 
 
-#define nTrains 4
+const int Ntrains = 4 ;
 /************************************************
  * reads in the train select button and pick the correct train to controll
 *************************************************/
@@ -185,10 +185,10 @@ void selectTrain() {
 		if ( sample <  previousSample ) difference = previousSample - sample;
 		previousSample = sample;
 
-		if( difference > ( 1024 / nTrains / 4 ) ) { // ADC range / nTrains steps / 2 -> mininum step needed to accept new value
+		if( difference > ( 1024 / Ntrains / 4 ) ) { // ADC range / Ntrains steps / 2 -> mininum step needed to accept new value
 			
-			newTrain = map ( sample, 0 ,1023, 0, nTrains );	// we re-use "sample" to select the new train
-			newTrain = constrain(newTrain , 0 , nTrains - 1);
+			newTrain = map ( sample, 0 ,1023, 0, Ntrains );	// we re-use "sample" to select the new train
+			newTrain = constrain(newTrain , 0 , Ntrains - 1);
 
 			//Serial.print("new selected train is "); //Serial.println( newTrain );
 			//Serial.print("sample is: "); //Serial.println( sample );

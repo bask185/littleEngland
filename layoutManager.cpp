@@ -14,7 +14,7 @@ uint8_t readSections(Section *currentSection, uint8_t direction) {
 		uint8_t adjacentTurnout = currentSection->leftTurnout ;
 
 		if( adjacentTurnout != NA ) {										// if there is a turnout
-			if( turnout[ adjacentTurnout ].state ==   UP ) return currentSection->leftuP ;
+			if( turnout[ adjacentTurnout ].state ==   UP ) return currentSection->leftUp ;
 			if( turnout[ adjacentTurnout ].state == DOWN ) return currentSection->leftDown ;
 		}
 		else {															// if there is no turnout
@@ -45,7 +45,7 @@ void layoutManager(void) {
 
 		// uint8_t currentSection = train[i].section;
 
-		uint8_t newSection = readSections( &section[ currentSection ] , train[i].direction ); // poll sensors of every known occupied sector
+		uint8_t newSection = readSections( &section[ currentSection ] , /*train[i].*/direction ); // poll sensors of every known occupied sector
 
 		if( newSection > 0 ) {
 
@@ -55,12 +55,12 @@ void layoutManager(void) {
 
 			currentSection = newSection ;
 
-			uint8_t blindTurnout = section.leftTurnoutBlind & 0x7F ; // last 7 bits holds the turnout number
-			uint8_t state 		 = section.leftTurnoutBlind & 0x80 ; // first bit holds the state
+			uint8_t blindTurnout = section[ newSection ].leftTurnoutBlind & 0x7F ; // last 7 bits holds the turnout number
+			uint8_t state 		 = section[ newSection ].leftTurnoutBlind & 0x80 ; // first bit holds the state
 			if( blindTurnout != NA ) setTurnout( blindTurnout, state ) ; 
 
-			blindTurnout = section.rightTurnoutBlind & 0x7F ;
-			state 		 = section.rightTurnoutBlind & 0x80 ;
+			blindTurnout = section[ newSection ].rightTurnoutBlind & 0x7F ;
+			state 		 = section[ newSection ].rightTurnoutBlind & 0x80 ;
 			if( blindTurnout != NA ) setTurnout( blindTurnout, state ) ;
 			//section[ currentSection ].rightTurnout = DOWN ;
 		}

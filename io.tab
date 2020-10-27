@@ -1,5 +1,6 @@
 8	detectorLeft	INPUT
 9	detectorRight	INPUT
+8	power_on	OUTPUT
 4	trackPower	OUTPUT
 2	directionPin1	OUTPUT
 3	directionPin2	OUTPUT

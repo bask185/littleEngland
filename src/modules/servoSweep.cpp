@@ -86,3 +86,7 @@ uint8_t ServoSweep::sweep ( ) {
         }
     }
 }
+
+uint8_t ServoSweep::getMiddle() {
+    return middlePosition ;
+}

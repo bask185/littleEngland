@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-const int nTrains = 1 ;
+//const int nTrains = 1 ;
 const int nSensors = 6 ;
 
 const int RIGHT = 1 ; 
