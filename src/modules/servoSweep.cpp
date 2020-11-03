@@ -49,6 +49,10 @@ void ServoSweep::setState( uint8_t _state ) {
     if( turnOff ) servo.attach( servoPin ) ;
 }
 
+uint8_t ServoSweep::getState( ) {
+    return state ;
+}
+
 // void ServoSweep::turnOn() {
 //     servo.attach( servoPin ) ;
 // }

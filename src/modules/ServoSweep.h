@@ -9,6 +9,7 @@ public:
     uint8_t getMiddle( ) ;
     uint8_t sweep( );
     void setState( uint8_t );
+    uint8_t getState( );
     // void turnOn() ;
     // void turnOff() ;
     void begin( );

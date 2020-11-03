@@ -50,6 +50,7 @@ void selectSensor(uint8_t nSensor) {
  * The speed is than send to the train being analog or digital
 ********************************/
 void handController() {
+	#ifndef debug
 	static uint8_t speedState = accelerating, previousSpeed;
 	struct {
 		uint8_t up : 1 ;
@@ -61,13 +62,13 @@ void handController() {
 		if( speedState == decelerating ) controllerT = decelerationInterval ;
 
 		static int8_t speed = 0, speedSetPoint = 0, speedPrev = 50 ;
-		uint8_t difference;
+		uint8_t difference ;
 
-		static uint16_t previousSample;
-		uint16_t sample = analogRead( throttle );
+		static uint16_t previousSample ;
+		uint16_t sample ;
 
-		if ( sample >= previousSample ) difference = sample - previousSample;
-		if ( sample <  previousSample ) difference = previousSample - sample;
+		if ( sample >= previousSample ) difference = sample - previousSample ;
+		if ( sample <  previousSample ) difference = previousSample - sample ;
 
 		if( difference > 10 ) { 
 			previousSample = sample;
@@ -128,6 +129,7 @@ void handController() {
 			}
 		}
 	}
+	#endif
 }
 /********************************
  * measures the current going to the tracks and keeps track of time
@@ -142,8 +144,10 @@ void shortCircuit() {
 
 		if(!overloadT) {
 			overloadT = 2; // 2ms interval
-		
-			unsigned int sample = analogRead(currentSensePin);
+			uint16_t sample ;
+			#ifndef debug
+			sample = analogRead(currentSensePin);
+			#endif
 			if(sample < MAXIMUM_CURRENT) {
 				msCounter = 25; // 50ms total
 				//Serial.println("DETECTING SHORT CIRCUIT!");
@@ -178,8 +182,9 @@ void selectTrain() {
 	static uint16_t previousSample = 0;
 
 	if( !selectTrainT ) { selectTrainT = 25; // 250ms interval
-
+		#ifndef debug
 		sample = analogRead( trainSelector );
+		#endif
 
 		if ( sample >= previousSample ) difference = sample - previousSample;
 		if ( sample <  previousSample ) difference = previousSample - sample;
@@ -262,8 +267,21 @@ extern void processRoundRobinTasks(void) {
 	// INITIALIZE TASKS (runs once uppon booting)
 		case INIT_TASK:
 		// initTurnouts();		// handle all servo motors and frog juicer
-		regelaar.begin();	// weistra pwm control
-		initDCC();			// DCC signal control
+		//regelaar.begin();	// weistra pwm control
+		//initDCC();			// DCC signal control
+		for(int i = 0 ; i < sectionAmount ; i ++ ) {
+			Serial.println(section[i]. leftSensor ) ;
+			Serial.println(section[i]. rightSensor ) ;
+			Serial.println(section[i]. leftTurnout ) ;
+			Serial.println(section[i]. rightTurnout ) ;
+			Serial.println(section[i]. leftTurnoutBlind ) ;
+			Serial.println(section[i]. rightTurnoutBlind ) ;
+			Serial.println(section[i]. leftUp ) ;
+			Serial.println(section[i]. leftDown ) ;
+			Serial.println(section[i]. rightUp ) ;
+			Serial.println(section[i]. rightDown ) ;
+			Serial.println();
+		}
 		PORTD = ( PORTD & 0b1011 ) | 0b1000; // differentiate both direction pins
 		break;
 
@@ -271,10 +289,10 @@ extern void processRoundRobinTasks(void) {
 		default: taskCounter = 0;
 		case 0: handController();	break;
 		case 1: shortCircuit();		break;
-		case 2: layoutManager();	break;
-		case 3: readLDR(1);			break;
+		case 2:	readLDR(1);			break;
+		case 3: layoutManager();	break;
 		case 4: selectTrain();		break;
 		case 5: flash13();			break;
-		case 6: /*controlTurnouts();*/	break;
+		case 6: controlTurnouts();	break;
 	}
 }

@@ -3,9 +3,12 @@
 #include "roundRobinTasks.h"
 
 void setup() {
+	cli();
 	initTimers();
+	sei();
 	initIO();
 	Serial.begin(115200);
+	Serial.println("hi bas");
 }
 
 

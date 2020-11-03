@@ -7,29 +7,74 @@
 #include "src/modules/DCC.h"
 #include "turnouts.h"
 
+uint8_t readSections(Section *currentSection ) {
 
-uint8_t readSections(Section *currentSection, uint8_t direction) {
-
-	if( direction == LEFT  && currentSection->leftSensor  == true ) {   // if LEFT sensor is made and train is moving LEFT
+	uint8_t sensorNumber = currentSection->leftSensor ;
+	uint8_t sensorState = ldr[ sensorNumber ].state ;
+	if( direction == LEFT  && sensorState == true ) {   // if LEFT sensor is made and train is moving LEFT
+		ldr[ sensorNumber ].state = false ;
+		#ifdef debug
+		Serial.println("sensor = true;");
+		#endif
 		uint8_t adjacentTurnout = currentSection->leftTurnout ;
+		#ifdef debug
+		Serial.print("adjacent turnout = ");Serial.println(adjacentTurnout);
+		#endif
 
 		if( adjacentTurnout != NA ) {										// if there is a turnout
-			if( turnout[ adjacentTurnout ].state ==   UP ) return currentSection->leftUp ;
-			if( turnout[ adjacentTurnout ].state == DOWN ) return currentSection->leftDown ;
+			if( turnout[ adjacentTurnout ].getState() ==   UP ) {
+				#ifdef debug
+				Serial.print("new section = " ) ; Serial.println(currentSection->leftUp);
+				#endif
+				return currentSection->leftUp ;
+			}
+			if( turnout[ adjacentTurnout ].getState() == DOWN ) {
+				#ifdef debug
+				Serial.print("new section = " ) ; Serial.println(currentSection->leftDown);
+				#endif
+				return currentSection->leftDown ;
+			}
 		}
-		else {															// if there is no turnout
-			return currentSection->leftUp ;										// return this value instead
+		else {		
+			#ifdef debug
+				Serial.print("new section = " ) ; Serial.println(currentSection->leftUp);
+				#endif													// if there is no turnout
+			return currentSection->leftUp ;								// return this value instead
 		}
 	}
 
-	if( direction == RIGHT && currentSection->rightSensor == true ) {   // same code for driving towards right side
+	sensorNumber = currentSection->rightSensor ;
+	sensorState = ldr[ sensorNumber].state ;
+
+	if( direction == RIGHT && sensorState == true ) {   // same code for driving towards right side
+		ldr[ sensorNumber ].state = false ;
+		#ifdef debug
+		Serial.println("sensor = true;");
+		#endif
 		uint8_t adjacentTurnout = currentSection->rightTurnout ;
 
+		#ifdef debug
+		Serial.print("adjacent turnout = ");Serial.println(adjacentTurnout);
+		#endif
+
 		if( adjacentTurnout != NA ) {
-			if( turnout[ adjacentTurnout ].state ==   UP ) return currentSection->rightUp ;
-			if( turnout[ adjacentTurnout ].state == DOWN ) return currentSection->rightDown ;
+			if( turnout[ adjacentTurnout ].getState() ==   UP ){
+				#ifdef debug
+				Serial.print("new section = " ) ; Serial.println(currentSection->rightUp);
+				#endif
+				return currentSection->rightUp ;
+			}
+			if( turnout[ adjacentTurnout ].getState() == DOWN ) {
+				#ifdef debug
+				Serial.print("new section = " ) ; Serial.println(currentSection->rightDown);
+				#endif
+				return currentSection->rightDown ;
+			}
 		}
 		else {
+			#ifdef debug
+			Serial.print("new section = " ) ; Serial.println(currentSection->rightUp);
+			#endif
 			return currentSection->rightUp ;
 		}
 	}
@@ -41,29 +86,28 @@ uint8_t readSections(Section *currentSection, uint8_t direction) {
  * Keeps track of a train's wareabout and controls all blind turnout if a train transitions to a new section.
 *************************************/
 void layoutManager(void) {
-	for( int i = 0 ; i < nTrains ; i++ ) {
 
-		// uint8_t currentSection = train[i].section;
+	uint8_t newSection = readSections( &section[ currentSection ] ); // poll sensors of every known occupied sector
 
-		uint8_t newSection = readSections( &section[ currentSection ] , /*train[i].*/direction ); // poll sensors of every known occupied sector
+	if( newSection > 0 ) {
+		#ifdef debug
+		Serial.println("new section entered");
+		#endif
 
-		if( newSection > 0 ) {
+		// train[i].section = newSection ; // if a sensor is true, the train may transition through sectors.
+		//uint8_t leftTurnout  = section[ currentSection ].leftTurnout ; // does not do anything
+		//uint8_t rightTurnout = section[ currentSection ].rightTurnout ;
 
-			// train[i].section = newSection ; // if a sensor is true, the train may transition through sectors.
-			uint8_t leftTurnout  = section[ currentSection ].leftTurnout ;
-			uint8_t rightTurnout = section[ currentSection ].rightTurnout ;
+		currentSection = newSection ;
 
-			currentSection = newSection ;
+		uint8_t blindTurnout =   section[ newSection ].leftTurnoutBlind & 0x7F ; // last 7 bits holds the turnout number
+		uint8_t state 		 = ( section[ newSection ].leftTurnoutBlind & 0x80 ) >> 7 ; // first bit holds the state
+		if( blindTurnout != NA ) setTurnout( blindTurnout, state ) ; 
 
-			uint8_t blindTurnout = section[ newSection ].leftTurnoutBlind & 0x7F ; // last 7 bits holds the turnout number
-			uint8_t state 		 = section[ newSection ].leftTurnoutBlind & 0x80 ; // first bit holds the state
-			if( blindTurnout != NA ) setTurnout( blindTurnout, state ) ; 
-
-			blindTurnout = section[ newSection ].rightTurnoutBlind & 0x7F ;
-			state 		 = section[ newSection ].rightTurnoutBlind & 0x80 ;
-			if( blindTurnout != NA ) setTurnout( blindTurnout, state ) ;
-			//section[ currentSection ].rightTurnout = DOWN ;
-		}
+		blindTurnout =   section[ newSection ].rightTurnoutBlind & 0x7F ;
+		state 		 = ( section[ newSection ].rightTurnoutBlind & 0x80 ) >> 7 ;
+		if( blindTurnout != NA ) setTurnout( blindTurnout, state ) ;
+		//section[ currentSection ].rightTurnout = DOWN ;
 	}
 }
 	

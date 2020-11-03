@@ -1,11 +1,13 @@
 #include <Arduino.h>
 
+#define debug
+
 //const int nTrains = 1 ;
 const int nSensors = 6 ;
 
 const int RIGHT = 1 ; 
 const int LEFT  = 2 ; 
-const int UP = 1 ;
+const int UP = 0 ;
 const int DOWN = 1 ;
 const int NA = 255 ; 
 
@@ -36,13 +38,13 @@ typedef struct LDRs {
 } LDR;
 extern LDR ldr[ nSensors ] ; ;
 
-typedef struct Turnout {
-	uint8_t ID : 1 ;
-	uint8_t state : 1 ;
-	uint8_t up ;
-	uint8_t down ;
-	uint8_t frog ;
-} Turnout;
+// typedef struct Turnout {
+// 	uint8_t ID : 1 ;
+// 	uint8_t state : 1 ;
+// 	uint8_t up ;
+// 	uint8_t down ;
+// 	uint8_t frog ;
+// } Turnout;
 
 // typedef struct Train {
 // 	uint8_t direction : 1; 
@@ -52,7 +54,7 @@ typedef struct Turnout {
 
 
 // extern Train train[nTrains];
-extern Turnout turnout[ turnoutAmount ];
+//extern Turnout turnout[ turnoutAmount ];
 
 extern unsigned int previousSample[6];
 extern uint8_t currentSection ;
