@@ -51,7 +51,8 @@ void initTurnouts() {
 	for(byte j = 0 ; j < 7 ; j ++ ) {
 		//turnout[j].begin();
 		Serial.print(turnout[j].lowPos);Serial.print(' ');Serial.print(turnout[j].highPos);Serial.print(' ');Serial.print(turnout[j].state);
-		servoDriver.setPWM( j, 0, 190 ); // 90 degrees
+		uint16_t us = map( 90, 0, 180, 120, 490 ); 			// map degrees to pulse lengths, numbers don't make sense but it works
+		servoDriver.setPWM( j, 0, us ); 					// 90 degrees
 	}
 }
 
