@@ -40,13 +40,13 @@ void initTurnouts() {
 	servoDriver.setPWMFreq(50);  // Analog servos run at ~50 Hz updates
 
 	
-	turnout[0].lowPos =  25; turnout[0].highPos = 115 ; turnout[0].state = 1 ;
-	turnout[1].lowPos =  25; turnout[1].highPos = 115 ; turnout[1].state = 1 ;
-	turnout[2].lowPos = 115; turnout[2].highPos =  25 ; turnout[2].state = 1 ;
-	turnout[3].lowPos =  25; turnout[3].highPos = 115 ; turnout[3].state = 1 ;
-	turnout[4].lowPos =  25; turnout[4].highPos = 115 ; turnout[4].state = 1 ;
-	turnout[5].lowPos =  25; turnout[5].highPos = 115 ; turnout[5].state = 1 ;
-	turnout[6].lowPos = 115; turnout[6].highPos =  25 ; turnout[6].state = 1 ;
+	turnout[0].lowPos =  20; turnout[0].highPos = 110 ; turnout[0].state = 1 ;
+	turnout[1].lowPos =  20; turnout[1].highPos = 110 ; turnout[1].state = 1 ;
+	turnout[2].lowPos = 110; turnout[2].highPos =  20 ; turnout[2].state = 1 ;
+	turnout[3].lowPos =  20; turnout[3].highPos = 110 ; turnout[3].state = 1 ;
+	turnout[4].lowPos =  20; turnout[4].highPos = 110 ; turnout[4].state = 1 ;
+	turnout[5].lowPos =  20; turnout[5].highPos = 110 ; turnout[5].state = 1 ;
+	turnout[6].lowPos = 110; turnout[6].highPos =  20 ; turnout[6].state = 1 ;
 
 	for(byte j = 0 ; j < 7 ; j ++ ) {
 		//turnout[j].begin();
