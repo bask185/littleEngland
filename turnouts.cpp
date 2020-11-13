@@ -40,19 +40,21 @@ void initTurnouts() {
 	servoDriver.setPWMFreq(50);  // Analog servos run at ~50 Hz updates
 
 	
-	turnout[0].lowPos =   30; turnout[0].highPos = 120 ; turnout[0].state = 1 ;
-	turnout[1].lowPos =   30; turnout[1].highPos = 120 ; turnout[1].state = 1 ;
-	turnout[2].lowPos =  120; turnout[2].highPos =  30 ; turnout[2].state = 1 ;
-	turnout[3].lowPos =  120; turnout[3].highPos =  30 ; turnout[3].state = 1 ;
-	turnout[4].lowPos =   30; turnout[4].highPos = 120 ; turnout[4].state = 1 ;
-	turnout[5].lowPos =   30; turnout[5].highPos = 120 ; turnout[5].state = 1 ;
-	turnout[6].lowPos =  120; turnout[6].highPos =  30 ; turnout[6].state = 1 ;
+	turnout[0].lowPos =  30; turnout[0].highPos = 120 ; turnout[0].state = 1 ;
+	turnout[1].lowPos =  30; turnout[1].highPos = 120 ; turnout[1].state = 1 ;
+	turnout[2].lowPos = 120; turnout[2].highPos =  30 ; turnout[2].state = 1 ;
+	turnout[3].lowPos =  30; turnout[3].highPos = 120 ; turnout[3].state = 1 ;
+	turnout[4].lowPos =  25; turnout[4].highPos = 115 ; turnout[4].state = 1 ;
+	turnout[5].lowPos =  30; turnout[5].highPos = 120 ; turnout[5].state = 1 ;
+	turnout[6].lowPos = 120; turnout[6].highPos =  30 ; turnout[6].state = 1 ;
 
 	for(byte j = 0 ; j < 7 ; j ++ ) {
 		//turnout[j].begin();
-		Serial.print(turnout[j].lowPos);Serial.print(' ');Serial.print(turnout[j].highPos);Serial.print(' ');Serial.print(turnout[j].state);
+		//Serial.print(turnout[j].lowPos);Serial.print(' ');Serial.print(turnout[j].highPos);Serial.print(' ');Serial.print(turnout[j].state);
 		uint16_t us = map( 90, 0, 180, 120, 490 ); 			// map degrees to pulse lengths, numbers don't make sense but it works
 		servoDriver.setPWM( j, 0, us ); 					// 90 degrees
+		setTurnout( j, 1 ) ;
+		delay( 500 );
 	}
 }
 
@@ -109,6 +111,8 @@ void setTurnout( uint8_t ID, uint8_t state ) {
 		#ifdef debug
 		Serial.print(F("turnout "));Serial.print(ID+1);Serial.print(F(" set at ")); Serial.println( degrees );
 		#endif
+		delay(100);
+		mcpWrite( ID, state ); // sets frog alike
 	}
 }
 

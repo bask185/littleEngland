@@ -10,7 +10,7 @@
 
 
 //#ifndef debug
-const int threshold = 150 ;
+const int threshold = 100 ;
 
 /* selects a channel of the multiplexer */
 #define setMux(x,j,k,l) case x:digitalWrite( muxPin3,  j ); digitalWrite( muxPin2,  k ); digitalWrite( muxPin1,  l ); break;
