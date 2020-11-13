@@ -41,12 +41,12 @@ void initTurnouts() {
 
 	
 	turnout[0].lowPos =   45; turnout[0].highPos = 135 ; turnout[0].state = 1 ;
-	turnout[1].lowPos =    0; turnout[1].highPos =  70 ; turnout[1].state = 1 ;
-	turnout[2].lowPos =   90; turnout[2].highPos =  45 ; turnout[2].state = 1 ;
-	turnout[3].lowPos =   95; turnout[3].highPos =  30 ; turnout[3].state = 1 ;
-	turnout[4].lowPos =   70; turnout[4].highPos = 105 ; turnout[4].state = 1 ;
-	turnout[5].lowPos =   60; turnout[5].highPos = 105 ; turnout[5].state = 1 ;
-	turnout[6].lowPos =  150; turnout[6].highPos =  90 ; turnout[6].state = 1 ;
+	turnout[1].lowPos =   45; turnout[1].highPos = 135 ; turnout[1].state = 1 ;
+	turnout[2].lowPos =  135; turnout[2].highPos =  45 ; turnout[2].state = 1 ;
+	turnout[3].lowPos =  135; turnout[3].highPos =  45 ; turnout[3].state = 1 ;
+	turnout[4].lowPos =   45; turnout[4].highPos = 135 ; turnout[4].state = 1 ;
+	turnout[5].lowPos =   45; turnout[5].highPos = 135 ; turnout[5].state = 1 ;
+	turnout[6].lowPos =  135; turnout[6].highPos =  45 ; turnout[6].state = 1 ;
 
 	for(byte j = 0 ; j < 7 ; j ++ ) {
 		//turnout[j].begin();
