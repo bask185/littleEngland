@@ -114,7 +114,7 @@ void handController() {
 										digitalWrite( directionPin2, HIGH ); }
 					if( speed > 0 ) {	digitalWrite( directionPin1, HIGH );
 										digitalWrite( directionPin2,  LOW ); }
-					Serial.print(F("PWM speed = ")); Serial.println(speed);
+					//Serial.print(F("PWM speed = ")); Serial.println(speed);
 					regelaar.setSpeed( abs( speed ) );
 				}
 
