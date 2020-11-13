@@ -1,5 +1,8 @@
 #include "weistra.h"
 
+#define Fmax 100
+#define Fmin 50
+
 Weistra::Weistra(unsigned char _pin) { // constructor
     trackPin = _pin;
 } 
@@ -42,8 +45,8 @@ void Weistra::setSpeed(byte speed) {
 
     dutyCycle = constrain(speed, 0, 100); // speed limit = 0 - 100
 
-    if( dutyCycle <= 10 ) { frequency = 20; }
-    else                  { frequency = map(dutyCycle, 10, 100, 20, 100); }
+    if( dutyCycle <= 10 ) { frequency = Fmin; }
+    else                  { frequency = map(dutyCycle, 10, 100, Fmin, Fmax); }
 
     intervalTime = 10000 / frequency; // > between 100us and 500us
  }

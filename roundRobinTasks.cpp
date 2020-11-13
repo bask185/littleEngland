@@ -9,39 +9,24 @@
 #include "src/modules/DCC.h"
 #include "turnouts.h"
 
-struct sensors {
-	uint16_t occupied : 1;
-	uint16_t occupanceValue : 10;
-};
 
 enum modes { analog, DCC1, DCC2, DCC3 };
 uint8_t mode, newTrainSelected = 0;;
 
-sensors sensor[6];
+
 uint8_t selectedAddres ;
 
 const int addresses[] = { 3, 4, 5 } ;
 
 Weistra regelaar( trackPower );
 
-#define setMux(x,j,k,l) case x:digitalWrite( muxPin1,  j ); digitalWrite( muxPin2,  k ); digitalWrite( muxPin3,  l ); break;
-/* selects a channel of the multiplexer */
-void selectSensor(uint8_t nSensor) {
-	switch( nSensor ) {
-		setMux(0,  LOW,  LOW,  LOW);
-		setMux(1,  LOW,  LOW, HIGH);
-		setMux(2,  LOW, HIGH,  LOW);
-		setMux(3,  LOW, HIGH, HIGH);
-		setMux(4, HIGH,  LOW,  LOW);
-		setMux(5, HIGH,  LOW, HIGH);
-		setMux(6, HIGH, HIGH,  LOW);
-	}
-}
 
-#define accelerationInterval 15
-#define decelerationInterval 7
+#define debounceInterval 50
+#define accelerationInterval 12
+#define decelerationInterval 6
 #define accelerating 1
 #define decelerating 2
+#define potmeterOffset 29
 
 /********************************
  * reads in the potentiometer and the 2 turnout buttons of the handcontroller
@@ -49,13 +34,15 @@ void selectSensor(uint8_t nSensor) {
  * A seperate acceleration speed and deceleration speed is than used to accel and break
  * The speed is than send to the train being analog or digital
 ********************************/
+#define middlePos 550
+
 void handController() {
-	#ifndef debug
+	//#ifndef debug
 	static uint8_t speedState = accelerating, previousSpeed;
 	struct {
 		uint8_t up : 1 ;
 		uint8_t down : 1 ;
-	 } turnoutButton ;
+	 } turnoutButton = {0,0} ;
 
 	if( !controllerT ) {
 		if( speedState == accelerating ) controllerT = accelerationInterval ;
@@ -67,38 +54,46 @@ void handController() {
 		static uint16_t previousSample ;
 		uint16_t sample ;
 
+		sample = analogRead( throttle ) ;
+		// Serial.println(sample);
+
 		if ( sample >= previousSample ) difference = sample - previousSample ;
 		if ( sample <  previousSample ) difference = previousSample - sample ;
 
-		if( difference > 10 ) { 
+		if( difference > 5 ) { 
 			previousSample = sample;
 
-				 if( sample > 1000 ) { turnoutButton.up = 1 ; /*Serial.println("  up button pressed");*/ }  
-			else if( sample <   10 ) { turnoutButton.down = 1 ;   ; /*Serial.println("down button pressed");*/ } 
-			else {
+			if( sample > (middlePos - 200) && sample < (middlePos + 200 ) ) {	// adds a dead range to the potentiometer's range for practical purposes
 				 // nextTurnout = UNDETERMENED;
-				////Serial.print( "sample speed " );  //Serial.println(sample);
-				speedSetPoint = map( sample, lowerVal, upperVal, -100, 100 ); 
-				speedSetPoint /= 4; // turns 100 speed steps into 25 speed steps
-				speedSetPoint *= 4;
+				// 
+				speedSetPoint = map( sample, middlePos - 200, middlePos + 200, -30, 30 ); // speed is in software restricted to 30$
+				speedSetPoint /= 3; // turns 60 speed steps into 30 speed steps
+				speedSetPoint *= 3;
+				//Serial.print( F("speedSetPoint " ));  Serial.println(speedSetPoint);
 			}
+
+			else if( sample >= upperVal - 25 ) { turnoutButton.down = 1 ; controllerT = debounceInterval ; }  
+			else if( sample <= lowerVal + 25 ) { turnoutButton.up   = 1 ; controllerT = debounceInterval ;  } 
+			
 		}
 		
 		uint8_t rightSwitch = section[ currentSection ].rightTurnout ;
 		uint8_t  leftSwitch = section[ currentSection ].leftTurnout ;
 		
-		if( turnoutButton.up ) {		// if turnout up is pressed
-			
+		if( turnoutButton.up ) {		// if turnout up is pressed	
+			Serial.println(F("Up button is pressed")) ;
 			if( direction == RIGHT ) setTurnout( rightSwitch, UP ) ;
 			if( direction ==  LEFT ) setTurnout(  leftSwitch, UP ) ;
 		} 
 		else if( turnoutButton.down ) {	// if turnout down is pressed
+			Serial.println(F("Down button is pressed")) ;
 			if( direction == RIGHT ) setTurnout( rightSwitch, DOWN ) ;
 			if( direction ==  LEFT ) setTurnout(  leftSwitch, DOWN ) ;
 		}
 		else {							// potentiometer has changed
 			if( speedSetPoint > speed ) speed ++;
 			if( speedSetPoint < speed ) speed --;	
+			//speed = speedSetPoint ;	
 
 			if( abs(speed) > previousSpeed ) {
 				speedState = accelerating;
@@ -110,27 +105,32 @@ void handController() {
 			if( speed != speedPrev ) {
 				speedPrev = speed;
 
+				if( speed < 0 ) {direction =  LEFT ; }
+				if( speed > 0 ) {direction = RIGHT ; }
+
 				// ANALOG MODE
 				if( mode == analog ) {
 					if( speed < 0 ) {	digitalWrite( directionPin1,  LOW );
 										digitalWrite( directionPin2, HIGH ); }
 					if( speed > 0 ) {	digitalWrite( directionPin1, HIGH );
 										digitalWrite( directionPin2,  LOW ); }
-					//Serial.print("PWM speed = "); //Serial.println(speed);
+					Serial.print(F("PWM speed = ")); Serial.println(speed);
 					regelaar.setSpeed( abs( speed ) );
 				}
 
 				// DCC MOCDE
 				else {
 					uint8_t DCCspeed = map( speed, -100, 100, 0, 56 ); // remap speed value for DCC signals
-					
-					setSpeed( selectedAddres, DCCspeed );
+					Serial.print(F("DCC speed = ")); Serial.println(DCCspeed);
+					//setSpeed( selectedAddres, DCCspeed );
 				}
 			}
 		}
 	}
-	#endif
+	//#endif
 }
+#undef middlePos 
+
 /********************************
  * measures the current going to the tracks and keeps track of time
  * if a continous overload of 50ms has occured, the trackpower will be shut off
@@ -140,16 +140,17 @@ void shortCircuit() {
 	static byte msCounter = 0;
 
 	if( ( digitalRead( trackPower ) == HIGH )  
-	&&  ( digitalRead( weistraPin ) == HIGH ) ) { // only detect for short circuit when the PWM pulse = HIGH
+	/*&&  ( digitalRead( weistraPin ) == HIGH )*/ ) { // only detect for short circuit when the PWM pulse = HIGH
 
 		if(!overloadT) {
 			overloadT = 2; // 2ms interval
 			uint16_t sample ;
-			#ifndef debug
 			sample = analogRead(currentSensePin);
+			#ifdef debug
+			//Serial.println( sample ) ;
 			#endif
 			if(sample < MAXIMUM_CURRENT) {
-				msCounter = 25; // 50ms total
+				msCounter = 25 ; // 50ms total
 				//Serial.println("DETECTING SHORT CIRCUIT!");
 			}
 
@@ -157,8 +158,8 @@ void shortCircuit() {
 
 			if(!msCounter) { 
 				digitalWrite(trackPower, LOW); 
-				//Serial.println("TRACK POWER DISABLED");
-				restartT = 51; // after 5s trackpower will be attemt to reenable power
+				Serial.println(F("TRACK POWER DISABLED"));
+				restartT = 50; // after 5s trackpower will be attemt to reenable power
 			}
 		}
 	}
@@ -166,7 +167,7 @@ void shortCircuit() {
 	if( restartT == 1 ) { 
 		restartT = 0;
 		digitalWrite( trackPower, HIGH ); 
-		//Serial.println("TRACK POWER ENABLED");
+		Serial.println(F("TRACK POWER ENABLED"));
 	}
 }
 
@@ -182,9 +183,9 @@ void selectTrain() {
 	static uint16_t previousSample = 0;
 
 	if( !selectTrainT ) { selectTrainT = 25; // 250ms interval
-		#ifndef debug
+		//#ifndef debug
 		sample = analogRead( trainSelector );
-		#endif
+		//#endif
 
 		if ( sample >= previousSample ) difference = sample - previousSample;
 		if ( sample <  previousSample ) difference = previousSample - sample;
@@ -202,11 +203,12 @@ void selectTrain() {
 			if( newTrain != analog ) {
 				selectedAddres = addresses[ newTrain - 1 ];
 				setSpeed( selectedAddres, 28 ) ;
+				Serial.print(F(" DIGITAL MODE ENABLED, ADDRESS: "));Serial.println( selectedAddres );
 			}
 
 			else {
 				bitClear(TIMSK1,OCIE1B);	// turn of ISR when analog mode is enabled
-				Serial.println(" PWM MODE ENABLED ");
+				Serial.println(F(" PWM MODE ENABLED "));
 			}
 
 			
@@ -225,14 +227,11 @@ void selectTrain() {
  * handles the Weistra controll method or the DCC method to controll all trains
 *******************************************/
 void trackSignals(){
-	if( digitalRead( trackPower ) ) { // if track power is not on, there is really no need to handle the track signals
-
-		if( mode == analog ) {
-			regelaar.update(); 	// analog mode
-		} 
-		else {
-			DCCsignals( ); 		// digital mode (mode termines if this function should run)
-		}
+	if( mode == analog ) {
+		if( restartT == 0 ) regelaar.update(); 	// analog mode
+	} 
+	else {
+		DCCsignals( ); 		// digital mode (mode termines if this function should run)
 	}
 }
 /***************
@@ -266,33 +265,24 @@ extern void processRoundRobinTasks(void) {
 	switch(++taskCounter) {
 	// INITIALIZE TASKS (runs once uppon booting)
 		case INIT_TASK:
-		// initTurnouts();		// handle all servo motors and frog juicer
-		//regelaar.begin();	// weistra pwm control
-		//initDCC();			// DCC signal control
-		for(int i = 0 ; i < sectionAmount ; i ++ ) {
-			Serial.println(section[i]. leftSensor ) ;
-			Serial.println(section[i]. rightSensor ) ;
-			Serial.println(section[i]. leftTurnout ) ;
-			Serial.println(section[i]. rightTurnout ) ;
-			Serial.println(section[i]. leftTurnoutBlind ) ;
-			Serial.println(section[i]. rightTurnoutBlind ) ;
-			Serial.println(section[i]. leftUp ) ;
-			Serial.println(section[i]. leftDown ) ;
-			Serial.println(section[i]. rightUp ) ;
-			Serial.println(section[i]. rightDown ) ;
-			Serial.println();
-		}
-		PORTD = ( PORTD & 0b1011 ) | 0b1000; // differentiate both direction pins
+		initTurnouts();		// handle all servo motors and frog juicer
+		regelaar.begin();	// weistra pwm control
+		initDCC();			// DCC signal control
+		initLDR();
+		delay(1000);
+
+		restartT = 50; 
+		//PORTD = ( PORTD & 0b1011 ) | 0b1000; // differentiate both direction pins
 		break;
 
 	// LOW PRIORITY TASKS
 		default: taskCounter = 0;
 		case 0: handController();	break;
 		case 1: shortCircuit();		break;
-		case 2:	readLDR(1);			break;
+		case 2:	if( !ldrDelay ) readLDR();	break;
 		case 3: layoutManager();	break;
 		case 4: selectTrain();		break;
 		case 5: flash13();			break;
-		case 6: controlTurnouts();	break;
+		//case 6: controlTurnouts();	break; rendered obsolete instead we control servo's to position directly
 	}
 }

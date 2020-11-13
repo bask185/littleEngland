@@ -9,9 +9,9 @@ A2	occupanceDetector	INPUT
 A3	currentSensePin	INPUT
 A7	throttle	INPUT
 A6	trainSelector	INPUT
-5	muxPin1	OUTPUT
+7	muxPin1	OUTPUT
 6	muxPin2	OUTPUT
-7	muxPin3	OUTPUT
+5	muxPin3	OUTPUT
 13	ledPin	OUTPUT
 
 MCP1

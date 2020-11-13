@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#define debug
+#define debug // ENABLE THIS FOR ENABLING DBUG TXTs
 
 //const int nTrains = 1 ;
 const int nSensors = 6 ;
@@ -11,11 +11,11 @@ const int UP = 0 ;
 const int DOWN = 1 ;
 const int NA = 255 ; 
 
-const int MAXIMUM_CURRENT = 200 ;
+const int MAXIMUM_CURRENT = 100 ; // 0.1A -> 10.8 ADC
 const int UNDETERMENED = 0 ;
 const int INIT_TASK = 255 ;
-const int upperVal = 1013 ;
-const int lowerVal = 11 ;
+const int upperVal = 1006 ;
+const int lowerVal = 18 ;
 const int sectionAmount = 14 ;
 const int turnoutAmount = 16 ;
 
@@ -56,6 +56,6 @@ extern LDR ldr[ nSensors ] ; ;
 // extern Train train[nTrains];
 //extern Turnout turnout[ turnoutAmount ];
 
-extern unsigned int previousSample[6];
+//extern unsigned int previousSample[6];
 extern uint8_t currentSection ;
 extern uint8_t direction ;

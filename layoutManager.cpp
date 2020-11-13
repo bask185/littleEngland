@@ -11,24 +11,27 @@ uint8_t readSections(Section *currentSection ) {
 
 	uint8_t sensorNumber = currentSection->leftSensor ;
 	uint8_t sensorState = ldr[ sensorNumber ].state ;
+
 	if( direction == LEFT  && sensorState == true ) {   // if LEFT sensor is made and train is moving LEFT
 		ldr[ sensorNumber ].state = false ;
-		#ifdef debug
-		Serial.println("sensor = true;");
-		#endif
 		uint8_t adjacentTurnout = currentSection->leftTurnout ;
+
 		#ifdef debug
+		Serial.println("transitioning");
 		Serial.print("adjacent turnout = ");Serial.println(adjacentTurnout);
 		#endif
 
 		if( adjacentTurnout != NA ) {										// if there is a turnout
-			if( turnout[ adjacentTurnout ].getState() ==   UP ) {
+
+			uint8_t adjacentTurnoutState = turnout[adjacentTurnout].state ;
+
+			if( adjacentTurnoutState ==   UP ) {
 				#ifdef debug
 				Serial.print("new section = " ) ; Serial.println(currentSection->leftUp);
 				#endif
 				return currentSection->leftUp ;
 			}
-			if( turnout[ adjacentTurnout ].getState() == DOWN ) {
+			if( adjacentTurnoutState == DOWN ) {
 				#ifdef debug
 				Serial.print("new section = " ) ; Serial.println(currentSection->leftDown);
 				#endif
@@ -48,23 +51,28 @@ uint8_t readSections(Section *currentSection ) {
 
 	if( direction == RIGHT && sensorState == true ) {   // same code for driving towards right side
 		ldr[ sensorNumber ].state = false ;
-		#ifdef debug
-		Serial.println("sensor = true;");
-		#endif
 		uint8_t adjacentTurnout = currentSection->rightTurnout ;
 
-		#ifdef debug
+		//#ifdef debug
+		Serial.print(F(" transitioning... "));
 		Serial.print("adjacent turnout = ");Serial.println(adjacentTurnout);
-		#endif
+		//#endif
+
+
 
 		if( adjacentTurnout != NA ) {
-			if( turnout[ adjacentTurnout ].getState() ==   UP ){
+
+			uint8_t adjacentTurnoutState ;
+			adjacentTurnoutState = turnout[adjacentTurnout].state ;
+			Serial.println( adjacentTurnoutState ) ;
+
+			if( adjacentTurnoutState ==   UP ){
 				#ifdef debug
 				Serial.print("new section = " ) ; Serial.println(currentSection->rightUp);
 				#endif
 				return currentSection->rightUp ;
 			}
-			if( turnout[ adjacentTurnout ].getState() == DOWN ) {
+			if( adjacentTurnoutState == DOWN ) {
 				#ifdef debug
 				Serial.print("new section = " ) ; Serial.println(currentSection->rightDown);
 				#endif

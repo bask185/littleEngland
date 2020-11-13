@@ -6,9 +6,12 @@ void setup() {
 	cli();
 	initTimers();
 	sei();
-	initIO();
+	
 	Serial.begin(115200);
+	initIO();
 	Serial.println("hi bas");
+
+
 }
 
 

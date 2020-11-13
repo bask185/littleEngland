@@ -167,6 +167,8 @@ extern void mcpWrite(unsigned char pin, unsigned char state) {
 	if(pin % 16 < 8)	port = portA;	// select port
 	else				port = portB;
 
+	pin %= 8 ;
+
 	Wire.beginTransmission(address);
 	Wire.write(port);
 	Wire.endTransmission();
