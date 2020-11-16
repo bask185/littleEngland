@@ -10,7 +10,8 @@
 
 
 //#ifndef debug
-const int threshold = 100 ;
+const int threshold = 80 ;
+const int ldrInterval = 35 ;
 
 /* selects a channel of the multiplexer */
 #define setMux(x,j,k,l) case x:digitalWrite( muxPin3,  j ); digitalWrite( muxPin2,  k ); digitalWrite( muxPin1,  l ); break;
@@ -33,10 +34,10 @@ void readLDR( ) {
 	static uint8_t index ; 
 	static unsigned int previousSample[8];
 
-
 	if ( !updateT ) { 
-		updateT = 20; // !every 20 ms sample time is 8 x 20ms = 160ms per sensor, 8 sensors are polled
+		updateT = ldrInterval ; // !every 20 ms sample time is 8 x 20ms = 160ms per sensor, 8 sensors are polled
 		if( ++index == 8 ) index = 0 ;
+
 		selectSensor( index );
 
 		sample = analogRead( occupanceDetector );

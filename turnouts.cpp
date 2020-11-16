@@ -111,7 +111,7 @@ void setTurnout( uint8_t ID, uint8_t state ) {
 		#ifdef debug
 		Serial.print(F("turnout "));Serial.print(ID+1);Serial.print(F(" set at ")); Serial.println( degrees );
 		#endif
-		delay(100);
+		//delay(100);
 		mcpWrite( ID, state ); // sets frog alike
 	}
 }
