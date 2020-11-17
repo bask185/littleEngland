@@ -20,13 +20,17 @@ const int addresses[] = { 3, 4, 5 } ;
 
 Weistra regelaar( trackPower );
 
-
 #define debounceInterval 50
-#define accelerationInterval 12
-#define decelerationInterval 6
+#define accelerationInterval 20
+#define decelerationInterval 10
 #define accelerating 1
 #define decelerating 2
 #define potmeterOffset 29
+#define middlePos 550
+#define potentioRange 300
+#define maxSpeed 25
+#define potentioThreshold 5
+#define speedSteps 10
 
 /********************************
  * reads in the potentiometer and the 2 turnout buttons of the handcontroller
@@ -34,7 +38,6 @@ Weistra regelaar( trackPower );
  * A seperate acceleration speed and deceleration speed is than used to accel and break
  * The speed is than send to the train being analog or digital
 ********************************/
-#define middlePos 550
 
 void handController() {
 	//#ifndef debug
@@ -60,15 +63,16 @@ void handController() {
 		if ( sample >= previousSample ) difference = sample - previousSample ;
 		if ( sample <  previousSample ) difference = previousSample - sample ;
 
-		if( difference > 5 ) { 
+		if( difference > potentioThreshold ) { 
 			previousSample = sample;
 
-			if( sample > (middlePos - 200) && sample < (middlePos + 200 ) ) {	// adds a dead range to the potentiometer's range for practical purposes
+			if( sample > (middlePos - potentioRange) 
+			&&  sample < (middlePos + potentioRange ) ) {	// adds a dead range to the potentiometer's range for practical purposes
 				 // nextTurnout = UNDETERMENED;
 				// 
-				speedSetPoint = map( sample, middlePos - 200, middlePos + 200, -30, 30 ); // speed is in software restricted to 30$
-				speedSetPoint /= 3; // turns 60 speed steps into 30 speed steps
-				speedSetPoint *= 3;
+				speedSetPoint = map( sample, (middlePos - potentioRange), (middlePos + potentioRange), -maxSpeed, maxSpeed ); // speed is in software restricted to 30$
+				speedSetPoint /= ( maxSpeed - speedSteps ) ; 	// reduces sensitivity 
+				speedSetPoint *= ( maxSpeed - speedSteps ) ;
 				//Serial.print( F("speedSetPoint " ));  Serial.println(speedSetPoint);
 			}
 
@@ -269,7 +273,7 @@ extern void processRoundRobinTasks(void) {
 		regelaar.begin();	// weistra pwm control
 		initDCC();			// DCC signal control
 		initLDR();
-		delay(1000);
+		delay(200);
 
 		restartT = 50; 
 		//PORTD = ( PORTD & 0b1011 ) | 0b1000; // differentiate both direction pins
@@ -283,6 +287,6 @@ extern void processRoundRobinTasks(void) {
 		case 3: layoutManager();	break;
 		case 4: selectTrain();		break;
 		case 5: flash13();			break;
-		//case 6: controlTurnouts();	break; rendered obsolete instead we control servo's to position directly
+		case 6: updateFrog();		break;
 	}
 }

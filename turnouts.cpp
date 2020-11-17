@@ -3,6 +3,9 @@
 #include "src/basics/timers.h"
 #include "variables.h"
 
+uint8_t nextFrog, nextState ;
+
+const int frogDelay = 100 ; 
 
 Adafruit_PWMServoDriver servoDriver ;// = Adafruit_PWMServoDriver();
 
@@ -51,10 +54,12 @@ void initTurnouts() {
 	for(byte j = 0 ; j < 7 ; j ++ ) {
 		//turnout[j].begin();
 		//Serial.print(turnout[j].lowPos);Serial.print(' ');Serial.print(turnout[j].highPos);Serial.print(' ');Serial.print(turnout[j].state);
+		
+		while( frogT != 0 ) {;} // wait before frog is flipped before setting next turnout
+		
 		uint16_t us = map( 90, 0, 180, 120, 490 ); 			// map degrees to pulse lengths, numbers don't make sense but it works
 		servoDriver.setPWM( j, 0, us ); 					// 90 degrees
 		setTurnout( j, 1 ) ;
-		delay( 500 );
 	}
 }
 
@@ -89,7 +94,9 @@ void controlTurnouts() {
 	
 
 void setTurnout( uint8_t ID, uint8_t state ) {
-	ldrDelay = 100 ;
+	// ldrDelay = 100 ;
+	
+	while( frogT ) {;} // prevents a bug in the extreme rare scenario that this function is called twice within 100ms
 
 	if( ID > 0 ) ID -- ; // 
 
@@ -98,9 +105,6 @@ void setTurnout( uint8_t ID, uint8_t state ) {
 		turnout[ID].state = state ;
 
 		uint8_t degrees ;
-
-		//Serial.println(turnout[ID].lowPos);
-		//Serial.println(turnout[ID].highPos);
 		
 		if( state ) degrees = turnout[ID].highPos;
 		else 		degrees = turnout[ID].lowPos;
@@ -112,9 +116,18 @@ void setTurnout( uint8_t ID, uint8_t state ) {
 		Serial.print(F("turnout "));Serial.print(ID+1);Serial.print(F(" set at ")); Serial.println( degrees );
 		#endif
 		//delay(100);
-		mcpWrite( ID, state ); // sets frog alike
+		
+		nextFrog = ID ;		// set global variables to fire the frog 100ms later
+		nextState = state ;
+		frogT = frogDelay ;
+		// mcpWrite( ID, state ); // sets frog alike replaced by update function for frogs
 	}
 }
 
-
-	
+void updateFrog() {
+	if( frogT == 1 ) {
+		frogT = 0 ;
+		
+		mcpWrite( nextFrog, nextState ) ;
+	}
+}
