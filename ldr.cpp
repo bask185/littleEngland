@@ -29,30 +29,33 @@ void selectSensor(uint8_t nSensor) {
 }
 
 void readLDR( ) {
-	int16_t sample;
-	int16_t difference;
-	static uint8_t index ; 
-	static unsigned int previousSample[8];
-
-	if ( !updateT ) { 
-		updateT = ldrInterval ; // !every 20 ms sample time is 8 x 20ms = 160ms per sensor, 8 sensors are polled
-		if( ++index == 8 ) index = 0 ;
-
-		selectSensor( index );
-
-		sample = analogRead( occupanceDetector );
+		if( !ldrDelay ) {
 		
-		difference = sample - previousSample[ index ] ;
-		if( difference < 0 ) difference = -difference ;
+		int16_t sample;
+		int16_t difference;
+		static uint8_t index ; 
+		static unsigned int previousSample[8];
 
-		previousSample[ index ] = sample;
+		if ( !updateT ) { 
+			updateT = ldrInterval ; // !every 20 ms sample time is 8 x 20ms = 160ms per sensor, 8 sensors are polled
+			if( ++index == 8 ) index = 0 ;
 
-		if( difference > threshold ) {
-			ldr[index].state = 1 ;
-			Serial.print(F("sensor ")) ; Serial.print(index );Serial.println(" true ");
-		}
-		else {
-			ldr[index].state = 0 ;	
+			selectSensor( index );
+
+			sample = analogRead( occupanceDetector );
+			
+			difference = sample - previousSample[ index ] ;
+			if( difference < 0 ) difference = -difference ;
+
+			previousSample[ index ] = sample;
+
+			if( difference > threshold ) {
+				ldr[index].state = 1 ;
+				Serial.print(F("sensor ")) ; Serial.print(index );Serial.println(" true ");
+			}
+			else {
+				ldr[index].state = 0 ;	
+			}
 		}
 	}
 }

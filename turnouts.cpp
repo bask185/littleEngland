@@ -3,8 +3,6 @@
 #include "src/basics/timers.h"
 #include "variables.h"
 
-uint8_t nextFrog, nextState ;
-
 const int frogDelay = 100 ; 
 
 Adafruit_PWMServoDriver servoDriver ;// = Adafruit_PWMServoDriver();
@@ -93,14 +91,11 @@ void controlTurnouts() {
 // }
 	
 
-void setTurnout( uint8_t ID, uint8_t state ) {
-	// ldrDelay = 100 ;
-	
-	while( frogT ) {;} // prevents a bug in the extreme rare scenario that this function is called twice within 100ms
+void setTurnout( uint8_t ID, uint8_t state ) {	
 
-	if( ID > 0 ) ID -- ; // 
+	if( ID > 0 ) ID -- ; 	// I screwed up with 0 index system...
 
-	if( ID <= nTurnouts ) {
+	if( ID <= nTurnouts ) {	// ignores non existing turnouts
 
 		turnout[ID].state = state ;
 
@@ -117,17 +112,18 @@ void setTurnout( uint8_t ID, uint8_t state ) {
 		#endif
 		//delay(100);
 		
-		nextFrog = ID ;		// set global variables to fire the frog 100ms later
-		nextState = state ;
-		frogT = frogDelay ;
-		// mcpWrite( ID, state ); // sets frog alike replaced by update function for frogs
+		frogT[ID] = frogDelay ;
 	}
 }
 
+
 void updateFrog() {
-	if( frogT == 1 ) {
-		frogT = 0 ;
-		
-		mcpWrite( nextFrog, nextState ) ;
+	for ( uint8_t i = 0 ; i < 8 ; i ++ ) {
+		if( frogT[i] == 1 ) {					// if frog timer reaches 1
+			frogT[i] = 0 ;						// set timer to 0, to prevent repetetive action
+			
+			uint8_t state = turnout[i].state;	// fetch the state
+			mcpWrite( i , state ) ;				// flip the frog
+		}
 	}
 }

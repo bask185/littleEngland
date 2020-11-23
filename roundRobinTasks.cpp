@@ -283,7 +283,7 @@ extern void processRoundRobinTasks(void) {
 		default: taskCounter = 0;
 		case 0: handController();	break;
 		case 1: shortCircuit();		break;
-		case 2:	if( !ldrDelay ) readLDR();	break;
+		case 2:	readLDR();	break;
 		case 3: layoutManager();	break;
 		case 4: selectTrain();		break;
 		case 5: flash13();			break;
