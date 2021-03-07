@@ -9,7 +9,8 @@ void setup() {
 	
 	Serial.begin(115200);
 	initIO();
-	Serial.println("hi bas");
+	Serial.println("hi bas 3:36");
+	delay(1000);
 
 
 }

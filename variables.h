@@ -14,8 +14,8 @@ const int NA = 255 ;
 const int MAXIMUM_CURRENT = 100 ; // 0.1A -> 10.8 ADC
 const int UNDETERMENED = 0 ;
 const int INIT_TASK = 255 ;
-const int upperVal = 1006 ;
-const int lowerVal = 18 ;
+const int upperVal = 900 ;
+const int lowerVal = 100 ;
 const int sectionAmount = 14 ;
 const int turnoutAmount = 16 ;
 
