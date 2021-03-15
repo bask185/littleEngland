@@ -3,7 +3,7 @@
 #include "src/basics/timers.h"
 #include "variables.h"
 
-const int frogDelay = 100 ; 
+const int frogDelay = 200 ; 
 
 Adafruit_PWMServoDriver servoDriver ;// = Adafruit_PWMServoDriver();
 
@@ -33,22 +33,26 @@ Turnouts turnout[ nTurnouts ];
 // 	( 150,  90, 1 )
 // } ;
 
-
-
 void initTurnouts() {
 	servoDriver.begin();
-	servoDriver.reset() ;
 	servoDriver.setOscillatorFrequency(27000000);
 	servoDriver.setPWMFreq(50);  // Analog servos run at ~50 Hz updates
 
+	// digitalWrite(13, HIGH) ;
+	// servoDriver.sleep() ;
+	// delay(1000);
+	// digitalWrite(13, LOW) ;
+	// servoDriver.wakeup();
+	// servoDriver.reset() ;
+	// delay(1000);
 	
-	turnout[0].lowPos = 87 ; turnout[0].highPos = 93 ; turnout[0].state = 1 ;
-	turnout[1].lowPos = 87 ; turnout[1].highPos = 93 ; turnout[1].state = 1 ;
-	turnout[2].lowPos = 87 ; turnout[2].highPos = 93 ; turnout[2].state = 1 ; // 3
-	turnout[3].lowPos = 93 ; turnout[3].highPos = 87 ; turnout[3].state = 1 ; // 4
-	turnout[4].lowPos = 87 ; turnout[4].highPos = 82 ; turnout[4].state = 1 ;
-	turnout[5].lowPos = 93 ; turnout[5].highPos = 87 ; turnout[5].state = 1 ;
-	turnout[6].lowPos = 87 ; turnout[6].highPos = 93 ; turnout[6].state = 1 ; // 7
+	turnout[0].lowPos = 106 ; turnout[0].highPos =  74 ; turnout[0].state = 1 ;
+	turnout[1].lowPos =  74 ; turnout[1].highPos = 106 ; turnout[1].state = 1 ;
+	turnout[2].lowPos =  74 ; turnout[2].highPos = 106 ; turnout[2].state = 1 ; // 3
+	turnout[3].lowPos = 106 ; turnout[3].highPos =  74 ; turnout[3].state = 1 ; // 4
+	turnout[4].lowPos =  74 ; turnout[4].highPos = 106 ; turnout[4].state = 1 ;
+	turnout[5].lowPos =  74 ; turnout[5].highPos = 106 ; turnout[5].state = 1 ;
+	turnout[6].lowPos = 106 ; turnout[6].highPos =  74 ; turnout[6].state = 1 ; // 7
 
 	for(byte j = 1 ; j < 8 ; j ++ ) {
 		//turnout[j].begin();
@@ -62,6 +66,13 @@ void initTurnouts() {
 		Serial.println(F("next servo"));
 		delay(300);
 	}
+	setTurnout( 1, 1 ) ;
+	while( frogT[0] != 0 ) { updateFrog(); }
+	for(byte j = 0 ; j < 8 ; j ++ ) {
+		servoDriver.setPin( j, 0, 0);   // OFF
+	}
+
+
 }
 
 
@@ -92,6 +103,8 @@ void controlTurnouts() {
 // 	Serial.println(retVal) ;
 // 	return retVal ;
 // }
+
+
 	
 
 void setTurnout( uint8_t ID, uint8_t state ) {	
@@ -107,7 +120,7 @@ void setTurnout( uint8_t ID, uint8_t state ) {
 		if( state ) degrees = turnout[ID].highPos;
 		else 		degrees = turnout[ID].lowPos;
 
-		uint16_t us = map( degrees, 0, 180, 120, 490 ); 			// map degrees to pulse lengths, numbers don't make sense but it works
+		uint16_t us = map( degrees, 0, 180, 204, 408 ); 			// map degrees to pulse lengths, numbers don't make sense but it works
 		servoDriver.setPWM( ID, 0, us );
 
 		#ifdef debug
@@ -122,12 +135,18 @@ void setTurnout( uint8_t ID, uint8_t state ) {
 
 void updateFrog() {
 	for ( uint8_t i = 0 ; i < 8 ; i ++ ) {
-		if( frogT[i] == 1 ) {					// if frog timer reaches 1
-			frogT[i] = 0 ;						// set timer to 0, to prevent repetetive action
+		if( frogT[i] == 100 ) {					// if frog timer reaches 100
+			frogT[i] = 99 ;						// set timer to 99, to prevent repetetive action
 			
 			uint8_t state = turnout[i].state;	// fetch the state
 			mcpWrite( i , state ) ;				// flip the frog
-			Serial.print("flipping frog #");Serial.println(i+1);
+			//Serial.print("flipping frog #");Serial.println(i+1);
+		}
+
+		if( frogT[i] == 1 ) {					// if frog timer reaches 1
+			frogT[i] = 0 ;						// set timer to 0, to prevent repetetive action
+			
+			servoDriver.setPin( i, 0, 0);   // OFF
 		}
 	}
 }

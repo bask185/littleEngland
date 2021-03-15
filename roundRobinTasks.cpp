@@ -30,7 +30,7 @@ Weistra regelaar( trackPower );
 #define potentioRange 400
 #define maxSpeed 75
 #define potentioThreshold 5
-#define speedSteps 10
+#define speedSteps 3
 #define nSamples 5
 
 /********************************
@@ -49,60 +49,60 @@ void handController() {
 		uint8_t down : 1 ;
 	 } turnoutButton = {0,0} ;
 
-	if( !sampleT ) { sampleT = 50 ;		// take ADC sample every 20ms
+	if( !sampleT ) { sampleT = 50 ;		// take ADC sample x amount of time
 
 		static int8_t speed = 0, speedSetPoint = 0, speedPrev = 50 ;
 		uint8_t difference ;
 
-		if( ++sampleCount == nSamples ) sampleCount = 0 ;
-		sample[ sampleCount ] = analogRead( throttle ) ;
+		uint16_t sample1= analogRead( throttle ) ;
 		
 		uint8_t rightSwitch = section[ currentSection ].rightTurnout ;
 		uint8_t  leftSwitch = section[ currentSection ].leftTurnout ;
 		
-		if( sample[ sampleCount ] <= lowerVal ) {		// if turnout up is pressed	
+		if( sample1 <= lowerVal ) {		// if turnout up is pressed	
 			if( buttonPressed == 0 ) { buttonPressed = 1;
 				Serial.println(F("Up button is pressed")) ;
 				if( direction == RIGHT ) setTurnout( rightSwitch, UP ) ;
 				if( direction ==  LEFT ) setTurnout(  leftSwitch, UP ) ;
 			}
 		} 
-		else if( sample[ sampleCount ] >= upperVal  ) {	// if turnout down is pressed
+		else if( sample1 >= upperVal  ) {	// if turnout down is pressed
 			if( buttonPressed == 0 ) { buttonPressed = 1;
 				Serial.println(F("Down button is pressed")) ;
 				if( direction == RIGHT ) setTurnout( rightSwitch, DOWN ) ;
 				if( direction ==  LEFT ) setTurnout(  leftSwitch, DOWN ) ;
 			}
 		}
+		else if( (sample1 > lowerVal + 200) && (sample1 < upperVal - 100) ) { // so: 300 < ADC sample <  800
+			buttonPressed = 0 ;
 
-		else {
+			if( ++sampleCount == nSamples ) sampleCount = 0 ;	
+			sample[ sampleCount ] = sample1 ;				// use sample1 to create an average to prevent visible adc spikes in train movement
+
 			uint16_t average = 0 ;
 			for( uint8_t i = 0 ; i < nSamples ; i ++ ) {
 				average += sample[ i ] ;
 			}
 			average /= nSamples ;
 
-			if( average > ( middlePos - potentioRange ) 
-			&&  average < ( middlePos + potentioRange ) ) {	// adds a dead range to the potentiometer's range for practical purposes
-				buttonPressed = 0;
-
-				speed = map( average, (middlePos - potentioRange), (middlePos + potentioRange), -maxSpeed, maxSpeed );
-				speed /= ( speedSteps ) ; 	// reduces sensitivity 
-				speed *= ( speedSteps ) ;
-
-				if( speed < 0 ) {direction =  LEFT ; }
-				if( speed > 0 ) {direction = RIGHT ; }
-
-				if( direction == LEFT ) {
-					digitalWrite( directionPin1,  LOW );
-					digitalWrite( directionPin2, HIGH );
-				}
-				if( direction == RIGHT ) {	
-					digitalWrite( directionPin1, HIGH );
-					digitalWrite( directionPin2,  LOW );
-				}
-				regelaar.setSpeed( abs( speed ) );
+			if( average < middlePos ) {				// set direction left or right
+				digitalWrite( directionPin1,  LOW );
+				digitalWrite( directionPin2, HIGH );
+				direction =  LEFT ; 
 			}
+			else {	
+				digitalWrite( directionPin1, HIGH );
+				digitalWrite( directionPin2,  LOW );
+				direction = RIGHT ; 
+			}
+
+			if(      average < middlePos - 50 ) { speed = map( average, middlePos - 50, lowerVal + 200, 0, maxSpeed ) ; }
+			else if( average > middlePos + 50 ) { speed = map( average, middlePos + 50, upperVal - 100, 0, maxSpeed ) ; }
+			else speed = 0 ;
+
+			//speed /= ( speedSteps ) ; 	// reduces sensitivity  MIGHT NOT BE NEEDED
+			//speed *= ( speedSteps ) ;
+			regelaar.setSpeed( abs( speed ) );
 		}
 	}
 }
@@ -135,7 +135,7 @@ void shortCircuit() {
 
 			if(!msCounter) { 
 				digitalWrite(trackPower, LOW); 
-				Serial.println(F("TRACK POWER DISABLED"));
+				//Serial.println(F("TRACK POWER DISABLED"));
 				restartT = 50; // after 5s trackpower will be attemt to reenable power
 			}
 		}
@@ -144,7 +144,7 @@ void shortCircuit() {
 	if( restartT == 1 ) { 
 		restartT = 0;
 		digitalWrite( trackPower, HIGH ); 
-		Serial.println(F("TRACK POWER ENABLED"));
+		//Serial.println(F("TRACK POWER ENABLED"));
 	}
 }
 

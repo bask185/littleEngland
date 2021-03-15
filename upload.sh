@@ -4,8 +4,8 @@
 # python.exe updateIO.py
 
 # #-p "COM4"
-# arduino-cli compile  -b arduino:avr:nano ~/Documents/software/littleEngland
-# arduino-cli upload -b arduino:avr:nano:cpu=atmega328old -p "COM3" -i ~/Documents/software/littleEngland/littleEngland.arduino.avr.nano.hex
+# arduino-cli compile  -b arduino:avr:nano ~/Documents/software/rosedaleAbbey
+# arduino-cli upload -b arduino:avr:nano:cpu=atmega328old -p "COM3" -i ~/Documents/software/rosedaleAbbey/rosedaleAbbey.arduino.avr.nano.hex
 
 # rm *.hex *.elf
 # putty.exe
@@ -19,11 +19,11 @@ python.exe updateIO.py
 #arduino-cli upload -b arduino:avr:nano:cpu=atmega328old -p /dev/ttyUSB0 -i /home/pi/temp/*.hex
 #rm -r /home/pi/temp/*.hex
 
-arduino-cli compile  -b arduino:avr:nano ~/Documents/software/littleEngland
-scp littleEngland.arduino.avr.nano.hex pi@192.168.1.84:/home/pi/temp/build/arduino.avr.nano/temp.ino.hex
+/C/Users/Gebruiker/Documents/arduino-cli14/arduino-cli compile -b arduino:avr:nano ~/Documents/software/rosedaleAbbey -e
+scp build/arduino.avr.nano/rosedaleAbbey.ino.with_bootloader.hex pi@192.168.2.11:/home/pi/temp/build/arduino.avr.nano/temp.ino.hex
 
 
-ssh pi@192.168.1.84 <<'ENDSSH'
+ssh pi@192.168.2.11 <<'ENDSSH'
 #commands to run on remote host
 /home/pi/upload.sh
 ENDSSH

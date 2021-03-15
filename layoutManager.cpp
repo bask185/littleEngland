@@ -14,7 +14,8 @@ uint8_t readSections(Section *currentSection ) {
 
 	if( direction == LEFT  && sensorState == true ) {   // if LEFT sensor is made and train is moving LEFT
 		ldr[ sensorNumber ].state = false ;
-		uint8_t adjacentTurnout = currentSection->leftTurnout - 1;
+		uint8_t adjacentTurnout = currentSection->leftTurnout ;
+		if( adjacentTurnout != NA ) adjacentTurnout -= 1;
 
 		#ifdef debug
 		Serial.println("transitioning");
@@ -51,7 +52,8 @@ uint8_t readSections(Section *currentSection ) {
 
 	if( direction == RIGHT && sensorState == true ) {   // same code for driving towards right side
 		ldr[ sensorNumber ].state = false ;
-		uint8_t adjacentTurnout = currentSection->rightTurnout - 1 ;
+		uint8_t adjacentTurnout = currentSection->rightTurnout ;
+		if( adjacentTurnout != NA ) adjacentTurnout -= 1;
 
 		//#ifdef debug
 		Serial.print(F(" transitioning... "));

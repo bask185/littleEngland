@@ -33,8 +33,7 @@ void Weistra::update() {
             if( counter == dutyCycle && dutyCycle < 100) {
                 *portx_p &= ~trackPin;
             }
-            counter++;
-            if(counter > 100) counter = 0;
+            if( ++counter > 100) counter = 0;
         }
     }
 }
