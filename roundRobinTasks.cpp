@@ -28,10 +28,28 @@ Weistra regelaar( trackPower );
 #define potmeterOffset 29
 #define middlePos 550
 #define potentioRange 400
-#define maxSpeed 75
+#define maxSpeed 50
 #define potentioThreshold 5
 #define speedSteps 3
 #define nSamples 5
+
+void followSpeed(uint8_t speedTmp)
+{
+	static uint8_t speed ;
+
+	if( !speedT ) {
+		speedT = 200 ;
+
+		static uint8_t speedPrev ;
+		if( speedTmp < speed ) speed -- ;
+		if( speedTmp > speed ) speed ++ ;
+
+		if( speedPrev != speed )
+		{	speedPrev  = speed ;
+			regelaar.setSpeed( abs( speed ) );
+		}
+	}
+}
 
 /********************************
  * reads in the potentiometer and the 2 turnout buttons of the handcontroller
@@ -73,7 +91,7 @@ void handController() {
 				if( direction ==  LEFT ) setTurnout(  leftSwitch, DOWN ) ;
 			}
 		}
-		else if( (sample1 > lowerVal + 200) && (sample1 < upperVal - 100) ) { // so: 300 < ADC sample <  800
+		else if( (sample1 > lowerVal + 50) && (sample1 < upperVal - 50) ) { // so: 300 < ADC sample <  800
 			buttonPressed = 0 ;
 
 			if( ++sampleCount == nSamples ) sampleCount = 0 ;	
@@ -96,13 +114,14 @@ void handController() {
 				direction = RIGHT ; 
 			}
 
-			if(      average < middlePos - 50 ) { speed = map( average, middlePos - 50, lowerVal + 200, 0, maxSpeed ) ; }
-			else if( average > middlePos + 50 ) { speed = map( average, middlePos + 50, upperVal - 100, 0, maxSpeed ) ; }
+			uint8_t speedTmp ;
+			if(      average < middlePos - 50 ) { speedTmp = map( average, middlePos - 50, lowerVal + 50, 0, maxSpeed ) ; }
+			else if( average > middlePos + 50 ) { speedTmp = map( average, middlePos + 50, upperVal - 50, 0, maxSpeed ) ; }
 			else speed = 0 ;
 
 			//speed /= ( speedSteps ) ; 	// reduces sensitivity  MIGHT NOT BE NEEDED
 			//speed *= ( speedSteps ) ;
-			regelaar.setSpeed( abs( speed ) );
+			followSpeed(speedTmp);
 		}
 	}
 }
